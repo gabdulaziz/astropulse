@@ -115,9 +115,12 @@ def main():
     if reset:
         print("Dropping all tables...")
         Base.metadata.drop_all(bind=engine)
-        from app.photos import AVATAR_DIR
-        for f in AVATAR_DIR.glob("*"):
-            f.unlink(missing_ok=True)   # old profile photos belonged to the deleted crew
+        # stored photos and images went with the tables; also clear files left on disk by older
+        # versions, so they are not copied back in on the next start
+        from app.config import UPLOAD_DIR
+        for f in list(UPLOAD_DIR.glob("*")) + list((UPLOAD_DIR / "avatars").glob("*")):
+            if f.is_file():
+                f.unlink(missing_ok=True)
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         for c in CREW:

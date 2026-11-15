@@ -1,0 +1,42 @@
+# Render Blueprint: builds AstroPulse from this GitHub repo.
+# Render dashboard -> New -> Blueprint -> pick this repo.
+# The database is on Neon (free, never expires), so it is not listed here.
+services:
+  # ---------- The API (FastAPI). Free plan: sleeps after 15 quiet minutes, wakes in about a minute.
+  - type: web
+    name: astropulse-api
+    runtime: python
+    plan: free
+    region: frankfurt            # closest Render region to Central Asia; pick the same region on Neon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DATABASE_URL          # paste the connection string from Neon
+        sync: false
+      - key: CORS_ORIGINS          # the website's address, e.g. https://astropulse.onrender.com
+        sync: false
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD        # choose a NEW strong password (not mission2026)
+        sync: false
+      - key: JWT_SECRET            # Render makes a random one
+        generateValue: true
+
+  # ---------- The website (React). Static sites are free and never sleep.
+  - type: web
+    name: astropulse
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL          # the API's address, e.g. https://astropulse-api.onrender.com
+        sync: false
+    routes:
+      - type: rewrite              # so refreshing /trends or /quests still opens the app
+        source: /*
+        destination: /index.html

@@ -15,6 +15,7 @@ from .config import CORS_ORIGINS
 from .database import Base, SessionLocal, engine
 from .routers import astronauts, auth, health, images, vitals
 from .security import ensure_default_admin
+from .storage import import_files_from_disk
 
 # Columns added after the first version. "IF NOT EXISTS" makes this safe to run on every start,
 # so an existing database is upgraded without losing any data.
@@ -35,6 +36,7 @@ def prepare_database():
             conn.execute(text(stmt))
     with SessionLocal() as db:
         ensure_default_admin(db)                   # Mission Control account from .env
+        import_files_from_disk(db)                 # photos saved on disk by older versions
 
 
 @asynccontextmanager

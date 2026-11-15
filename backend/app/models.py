@@ -1,7 +1,7 @@
 """Database tables (SQLAlchemy ORM models). See schema.sql for the same thing in plain SQL."""
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, Index
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -74,7 +74,7 @@ class TaskCompletion(Base):
 
 
 class HealthImage(Base):
-    """A camera image (ultrasound, skin, eye, wound...) saved to /uploads, with metadata here."""
+    """A camera image (ultrasound, skin, eye, wound...). The bytes live in stored_files under `filename`."""
 
     __tablename__ = "health_images"
 
@@ -116,3 +116,16 @@ class EmergencyAccess(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class StoredFile(Base):
+    """The bytes of an uploaded file (profile photo or health image).
+
+    Kept in PostgreSQL instead of on disk, because free hosting wipes the disk on every restart."""
+
+    __tablename__ = "stored_files"
+
+    name: Mapped[str] = mapped_column(String(200), primary_key=True)
+    content_type: Mapped[str] = mapped_column(String(50))
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

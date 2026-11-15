@@ -130,8 +130,16 @@ def register_success(db: Session, account) -> None:
 
 # ------------------------------------------------------------------ first start
 def ensure_default_admin(db: Session) -> None:
-    """Create the Mission Control account from .env if there is no admin yet."""
+    """Create the Mission Control account from .env if there is no admin yet.
+    The password in .env (or the hosting settings) is the source of truth: if it was changed
+    there, the stored hash is updated and old Mission Control sessions are signed out."""
     if db.scalar(select(Admin.id).limit(1)) is None:
         db.add(Admin(username=config.ADMIN_USERNAME, display_name="Mission Control",
                      password_hash=hash_secret(config.ADMIN_PASSWORD)))
+        db.commit()
+        return
+    admin = db.scalar(select(Admin).where(Admin.username == config.ADMIN_USERNAME))
+    if admin and not verify_secret(config.ADMIN_PASSWORD, admin.password_hash):
+        admin.password_hash = hash_secret(config.ADMIN_PASSWORD)
+        admin.token_version += 1
         db.commit()

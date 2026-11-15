@@ -1,14 +1,13 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..config import UPLOAD_DIR
+from ..storage import delete_file
 from ..models import Astronaut, HealthImage
-from ..photos import astronaut_photo_url, photo_path, remove_photo, save_photo
+from ..photos import astronaut_photo_url, photo_response, remove_photo, save_photo
 from ..schemas import AstronautCreate, AstronautOut, AstronautUpdate, PinSet
 from ..security import Principal, current_user, ensure_can_read, ensure_can_write, hash_secret, require_admin
 
@@ -89,13 +88,12 @@ def set_pin(astronaut_id: int, body: PinSet, _: Principal = Depends(require_admi
 def delete_astronaut(astronaut_id: int, _: Principal = Depends(require_admin), db: Session = Depends(get_db)):
     astro = get_astronaut_or_404(db, astronaut_id)
     files = [img.filename for img in db.scalars(select(HealthImage).where(HealthImage.astronaut_id == astronaut_id)).all()]
-    photo = astro.photo_filename
+    # remove their stored files too, not only the database rows
+    remove_photo(db, astro.photo_filename)
+    for name in files:
+        delete_file(db, name)
     db.delete(astro)
     db.commit()
-    # remove their files from disk too, not only the database rows
-    remove_photo(photo)
-    for name in files:
-        (UPLOAD_DIR / name).unlink(missing_ok=True)
 
 
 # ------------------------------------------------------------------ profile photo
@@ -103,10 +101,7 @@ def delete_astronaut(astronaut_id: int, _: Principal = Depends(require_admin), d
 def get_photo(astronaut_id: int, db: Session = Depends(get_db)):
     """Public on purpose: crew photos are shown on the login screen. Never health data."""
     astro = get_astronaut_or_404(db, astronaut_id)
-    path = photo_path(astro.photo_filename)
-    if not path:
-        raise HTTPException(404, "No photo")
-    return FileResponse(path, headers={"Cache-Control": "public, max-age=86400"})
+    return photo_response(db, astro.photo_filename)
 
 
 @router.post("/{astronaut_id}/photo", response_model=AstronautOut)
@@ -114,7 +109,7 @@ async def upload_photo(astronaut_id: int, file: UploadFile = File(...), user: Pr
                        db: Session = Depends(get_db)):
     ensure_can_write(user, astronaut_id)   # yourself, or Mission Control
     astro = get_astronaut_or_404(db, astronaut_id)
-    astro.photo_filename = await save_photo(file, astro.photo_filename)
+    astro.photo_filename = await save_photo(db, file, astro.photo_filename)
     db.commit()
     db.refresh(astro)
     return to_out(astro)
@@ -124,7 +119,7 @@ async def upload_photo(astronaut_id: int, file: UploadFile = File(...), user: Pr
 def delete_photo(astronaut_id: int, user: Principal = Depends(current_user), db: Session = Depends(get_db)):
     ensure_can_write(user, astronaut_id)
     astro = get_astronaut_or_404(db, astronaut_id)
-    remove_photo(astro.photo_filename)
+    remove_photo(db, astro.photo_filename)
     astro.photo_filename = None
     db.commit()
     db.refresh(astro)

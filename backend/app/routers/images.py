@@ -6,11 +6,10 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..config import UPLOAD_DIR
+from ..storage import delete_file, file_response, put_file
 from ..database import get_db
 from ..models import HealthImage
 from ..schemas import ImageOut
@@ -50,7 +49,7 @@ async def upload_image(
     if len(data) > MAX_BYTES:
         raise HTTPException(413, "Image larger than 10 MB")
     name = f"{uuid.uuid4().hex}{ext}"
-    (UPLOAD_DIR / name).write_bytes(data)
+    put_file(db, name, data)
     img = HealthImage(astronaut_id=astronaut_id, category=category, filename=name, notes=notes)
     db.add(img)
     db.commit()
@@ -72,10 +71,7 @@ def image_file(image_id: int, user: Principal = Depends(current_user), db: Sessi
     if not img:
         raise HTTPException(404, "Image not found")
     ensure_can_read(db, user, img.astronaut_id)
-    path = UPLOAD_DIR / img.filename
-    if not path.exists():
-        raise HTTPException(404, "Image file missing")
-    return FileResponse(path, headers={"Cache-Control": "private, no-store"})
+    return file_response(db, img.filename, "private, no-store", "Image file missing")
 
 
 @router.delete("/{image_id}", status_code=204)
@@ -84,6 +80,6 @@ def delete_image(image_id: int, user: Principal = Depends(current_user), db: Ses
     if not img:
         raise HTTPException(404, "Image not found")
     ensure_can_write(user, img.astronaut_id)
-    (UPLOAD_DIR / img.filename).unlink(missing_ok=True)
+    delete_file(db, img.filename)
     db.delete(img)
     db.commit()

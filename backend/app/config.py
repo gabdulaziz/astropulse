@@ -9,17 +9,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = BASE_DIR / ".env"
 load_dotenv(ENV_FILE)
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg://astropulse:astropulse_pw@localhost:5432/astropulse",
-)
+def _database_url() -> str:
+    url = os.getenv("DATABASE_URL", "").strip() or "postgresql+psycopg://astropulse:astropulse_pw@localhost:5432/astropulse"
+    # Hosting services (Neon, Render) give "postgres://" or "postgresql://" addresses.
+    # SQLAlchemy needs to be told to use the psycopg driver.
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
+
+
+DATABASE_URL = _database_url()
 CORS_ORIGINS = [
     o.strip()
     for o in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
     if o.strip()
 ]
+# Older versions saved uploads here. Files found here are moved into the database on start.
 UPLOAD_DIR = BASE_DIR / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
 
 # ---- Login settings
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")

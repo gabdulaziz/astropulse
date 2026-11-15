@@ -1,16 +1,15 @@
 """Profile photos for astronauts and Mission Control.
 
-Photos are stored in backend/uploads/avatars/ and the database keeps only the file name.
+Photos are stored in the database (table stored_files); astronauts/admins keep only the file name.
 The browser already crops and shrinks them to 256x256 before upload, but the server still
 checks that the file really is an image and not too big."""
 import uuid
 
 from fastapi import HTTPException, UploadFile
+from sqlalchemy.orm import Session
 
-from .config import UPLOAD_DIR
+from .storage import delete_file, file_response, put_file
 
-AVATAR_DIR = UPLOAD_DIR / "avatars"
-AVATAR_DIR.mkdir(parents=True, exist_ok=True)
 MAX_BYTES = 5 * 1024 * 1024
 
 # The first bytes of a file tell what it really is (the name can lie).
@@ -31,7 +30,7 @@ def _detect(data: bytes) -> str | None:
     return None
 
 
-async def save_photo(file: UploadFile, old_filename: str | None) -> str:
+async def save_photo(db: Session, file: UploadFile, old_filename: str | None) -> str:
     data = await file.read()
     if len(data) > MAX_BYTES:
         raise HTTPException(413, "Photo larger than 5 MB")
@@ -39,21 +38,17 @@ async def save_photo(file: UploadFile, old_filename: str | None) -> str:
     if not ext:
         raise HTTPException(422, "Please choose a JPG, PNG, WebP or GIF image")
     name = f"{uuid.uuid4().hex}{ext}"
-    (AVATAR_DIR / name).write_bytes(data)
-    remove_photo(old_filename)
+    put_file(db, name, data)
+    remove_photo(db, old_filename)
     return name
 
 
-def remove_photo(filename: str | None) -> None:
-    if filename:
-        (AVATAR_DIR / filename).unlink(missing_ok=True)
+def remove_photo(db: Session, filename: str | None) -> None:
+    delete_file(db, filename)
 
 
-def photo_path(filename: str | None):
-    if not filename:
-        return None
-    path = AVATAR_DIR / filename
-    return path if path.exists() else None
+def photo_response(db: Session, filename: str | None):
+    return file_response(db, filename, "public, max-age=86400", "No photo")
 
 
 def astronaut_photo_url(astro) -> str | None:

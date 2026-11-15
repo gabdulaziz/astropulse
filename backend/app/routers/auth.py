@@ -2,7 +2,6 @@
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -11,7 +10,7 @@ from .. import config
 from ..database import get_db
 from ..health_engine import assessment
 from ..models import Admin, Astronaut, EmergencyAccess, VitalReading
-from ..photos import admin_photo_url, astronaut_photo_url, photo_path, remove_photo, save_photo
+from ..photos import admin_photo_url, astronaut_photo_url, photo_response, remove_photo, save_photo
 from ..security import (Principal, check_lock, current_user, hash_secret, make_token, register_failure,
                         register_success, require_admin, verify_secret)
 
@@ -198,16 +197,15 @@ def access_log(_: Principal = Depends(require_admin), db: Session = Depends(get_
 @router.get("/admin/{admin_id}/photo")
 def admin_photo(admin_id: int, db: Session = Depends(get_db)):
     admin = db.get(Admin, admin_id)
-    path = photo_path(admin.photo_filename) if admin else None
-    if not path:
+    if not admin:
         raise HTTPException(404, "No photo")
-    return FileResponse(path, headers={"Cache-Control": "public, max-age=86400"})
+    return photo_response(db, admin.photo_filename)
 
 
 @router.post("/admin/me/photo")
 async def upload_admin_photo(file: UploadFile = File(...), user: Principal = Depends(require_admin), db: Session = Depends(get_db)):
     admin = db.get(Admin, user.id)
-    admin.photo_filename = await save_photo(file, admin.photo_filename)
+    admin.photo_filename = await save_photo(db, file, admin.photo_filename)
     db.commit()
     return {"photo_url": admin_photo_url(admin)}
 
@@ -215,7 +213,7 @@ async def upload_admin_photo(file: UploadFile = File(...), user: Principal = Dep
 @router.delete("/admin/me/photo")
 def delete_admin_photo(user: Principal = Depends(require_admin), db: Session = Depends(get_db)):
     admin = db.get(Admin, user.id)
-    remove_photo(admin.photo_filename)
+    remove_photo(db, admin.photo_filename)
     admin.photo_filename = None
     db.commit()
     return {"photo_url": None}

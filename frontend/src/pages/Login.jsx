@@ -48,8 +48,11 @@ function AstronautLogin() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [shake, setShake] = useState(0)
+  const [slow, setSlow] = useState(false)
 
   useEffect(() => { api.roster().then(setRoster).catch(() => setOffline(true)) }, [])
+  // Free hosting puts the server to sleep when nobody uses it; the first visit wakes it up.
+  useEffect(() => { const t = setTimeout(() => setSlow(true), 4000); return () => clearTimeout(t) }, [])
 
   async function submit(code) {
     setBusy(true); setError('')
@@ -81,7 +84,12 @@ function AstronautLogin() {
   }) // eslint-disable-line
 
   if (offline) return <OfflineNote />
-  if (!roster) return <div className="muted" style={{ textAlign: 'center' }}>Loading crew…</div>
+  if (!roster) return (
+    <div className="muted" style={{ textAlign: 'center' }}>
+      Loading crew…
+      {slow && <div style={{ marginTop: 8, fontSize: 13 }}>Waking up Mission Control. The first visit after a quiet spell can take up to a minute.</div>}
+    </div>
+  )
   if (!roster.length) return <div className="muted" style={{ textAlign: 'center' }}>No astronauts yet. Mission Control must create the crew first.</div>
 
   if (!who) {
