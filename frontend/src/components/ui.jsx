@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState } from 'react'
 import { CheckCircle2, AlertTriangle, Info } from 'lucide-react'
 import { STATUS_COLOR, STATUS_LABEL } from '../lib/health'
 
@@ -116,12 +116,31 @@ export function Sparkline({ data = [], color = '#7c5cff', width = 110, height = 
 }
 
 // ---- Tabs with sliding pill
-export function Tabs({ tabs, value, onChange, id = 'tabs' }) {
+// Tabs with a sliding highlight. The highlight is measured and moved by hand
+// (not with a shared "layoutId" animation): a layoutId inside a page stopped the
+// page's leave animation from finishing, which left the next page blank.
+export function Tabs({ tabs, value, onChange }) {
+  const wrap = useRef(null)
+  const [pill, setPill] = useState(null)
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = wrap.current?.querySelector(`[data-tab="${CSS.escape(String(value))}"]`)
+      if (el) setPill({ x: el.offsetLeft, width: el.offsetWidth })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [value, tabs.length])
   return (
-    <div className="tabs">
+    <div className="tabs" ref={wrap} style={{ position: 'relative' }}>
+      {pill && (
+        <motion.span className="tab-pill" initial={false} animate={{ x: pill.x, width: pill.width }}
+          transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+          style={{ position: 'absolute', left: 0, top: 4, bottom: 4, right: 'auto', zIndex: 0 }} />
+      )}
       {tabs.map((t) => (
-        <button key={t.value} className={`tab ${value === t.value ? 'active' : ''}`} onClick={() => onChange(t.value)}>
-          {value === t.value && <motion.span layoutId={`${id}-pill`} className="tab-pill" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />}
+        <button key={t.value} data-tab={t.value} className={`tab ${value === t.value ? 'active' : ''}`} onClick={() => onChange(t.value)}
+          style={{ position: 'relative', zIndex: 1 }}>
           {t.label}
         </button>
       ))}

@@ -81,3 +81,15 @@ def get_body_systems():
 @router.get("/knowledge/environments")
 def get_environments():
     return [{"key": k, **v} for k, v in K.ENVIRONMENTS.items()]
+
+
+@router.get("/knowledge/risks")
+def get_risks():
+    """NASA's named spaceflight health risks and how AstroPulse covers each one."""
+    return K.RISKS
+
+
+@router.get("/knowledge/sources")
+def get_sources():
+    """Every source the app's health information relies on (official challenge resources first)."""
+    return K.SOURCES

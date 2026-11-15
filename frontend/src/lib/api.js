@@ -72,6 +72,8 @@ export const api = {
   hazards: () => request('/api/knowledge/hazards', {}, { auth: false }),
   bodySystems: () => request('/api/knowledge/body-systems', {}, { auth: false }),
   environments: () => request('/api/knowledge/environments', {}, { auth: false }),
+  risks: () => request('/api/knowledge/risks', {}, { auth: false }),
+  sources: () => request('/api/knowledge/sources', {}, { auth: false }),
   // images (files are private: fetched with the login pass, shown as a local blob)
   images: (astronautId) => request(`/api/images?astronaut_id=${astronautId}`),
   uploadImage: (form) => request('/api/images', { method: 'POST', body: form }),

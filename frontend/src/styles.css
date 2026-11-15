@@ -354,3 +354,15 @@ textarea.input { resize: vertical; min-height: 84px; }
 .avatar-edit .cam { position: absolute; right: -2px; bottom: -2px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
   background: var(--grad); color: #fff; border: 2px solid #0a0d24; box-shadow: 0 0 12px rgba(124, 92, 255, .8); }
 .avatar-edit:hover .avatar { filter: brightness(1.1); }
+
+/* ---------- sources & risks ---------- */
+.source-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+.source-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  color: var(--text-dim); background: rgba(255,255,255,.05); border: 1px solid var(--border); text-decoration: none; }
+a.source-chip:hover { color: #fff; border-color: rgba(124, 92, 255, .6); }
+.source-chip.official { color: #a5f3fc; border-color: rgba(34, 211, 238, .45); background: rgba(34, 211, 238, .08); }
+.cov { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.cov.tracked { color: #34d399; background: rgba(52, 211, 153, .12); border: 1px solid rgba(52, 211, 153, .4); }
+.cov.partly { color: #fbbf24; background: rgba(251, 191, 36, .12); border: 1px solid rgba(251, 191, 36, .4); }
+.cov.guidance { color: #a5b4fc; background: rgba(165, 180, 252, .12); border: 1px solid rgba(165, 180, 252, .4); }
+.cov.outside { color: #94a3b8; background: rgba(148, 163, 184, .1); border: 1px solid rgba(148, 163, 184, .35); }

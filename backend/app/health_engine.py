@@ -128,13 +128,13 @@ def assessment(db: Session, astro: Astronaut) -> dict:
     career_pct = career / K.CAREER_DOSE_LIMIT_MSV * 100
     if career_pct >= 80:
         alerts.append({"indicator": "radiation_dose", "level": "critical",
-                       "title": "Career radiation dose above 80% of the limit",
-                       "message": f"{career:.0f} of {K.CAREER_DOSE_LIMIT_MSV:.0f} mSv used. Discuss mission planning with the flight surgeon.",
+                       "title": "Career radiation dose above 80% of NASA's limit",
+                       "message": f"{career:.0f} of NASA's {K.CAREER_DOSE_LIMIT_MSV:.0f} mSv career limit used. Discuss mission planning with the flight surgeon.",
                        "escalate": True})
     elif career_pct >= 50:
         alerts.append({"indicator": "radiation_dose", "level": "caution",
-                       "title": "Career radiation dose above 50% of the limit",
-                       "message": f"{career:.0f} of {K.CAREER_DOSE_LIMIT_MSV:.0f} mSv used. Prefer shielded areas for sleep.",
+                       "title": "Career radiation dose above 50% of NASA's limit",
+                       "message": f"{career:.0f} of NASA's {K.CAREER_DOSE_LIMIT_MSV:.0f} mSv career limit used. Prefer shielded areas for sleep.",
                        "escalate": False})
 
     score = max(0, min(100, round(score)))

@@ -22,16 +22,16 @@ DAYS = 30
 CREW = [
     dict(name="Maya Okafor", call_sign="NOVA", role="Commander", agency="NASA", environment="station",
          mission_name="Expedition 78", baseline_mass_kg=68.0, pin="111111", prior_career_dose_msv=72, avatar_color="#7c5cff",
-         profile=dict(hr=58, sys=114, dia=72, glu=88, temp=36.9, spo2=98, sleep=7.1, mood=4.2, mass_drift=-0.03,
+         profile=dict(hr=58, sys=114, dia=72, glu=88, temp=36.9, spo2=98, sleep=6.4, mood=4.2, mass_drift=-0.03,
                       dose=0.7)),
     dict(name="Diego Ramirez", call_sign="ORBIT", role="Flight Engineer", agency="NASA", environment="lunar_base",
          mission_name="Artemis Base Camp", baseline_mass_kg=81.0, pin="222222", prior_career_dose_msv=140, avatar_color="#22d3ee",
          # sleep and mood slowly drift down, BP slowly up -> shows caution alerts and trends
-         profile=dict(hr=66, sys=122, dia=79, glu=96, temp=37.0, spo2=97, sleep=6.6, mood=3.9, mass_drift=-0.045,
+         profile=dict(hr=66, sys=122, dia=79, glu=96, temp=37.0, spo2=97, sleep=6.2, mood=3.9, mass_drift=-0.045,
                       dose=1.4, decline=True)),
     dict(name="Aiko Tanaka", call_sign="ZEN", role="Mission Specialist", agency="JAXA", environment="mars_base",
          mission_name="Ares Transit Habitat", baseline_mass_kg=59.0, pin="333333", prior_career_dose_msv=310, avatar_color="#f472b6",
-         profile=dict(hr=61, sys=110, dia=70, glu=84, temp=37.2, spo2=98, sleep=7.4, mood=4.4, mass_drift=-0.05,
+         profile=dict(hr=61, sys=110, dia=70, glu=84, temp=37.2, spo2=98, sleep=6.8, mood=4.4, mass_drift=-0.05,
                       dose=0.7)),
 ]
 
@@ -61,7 +61,7 @@ def build(db, spec):
                                round(jitter(p["dia"] + (8 * t if decline else 0), 3))),
             "body_temperature": (round(jitter(p["temp"] + 0.3 * t, 0.15), 1), None),
             "spo2": (min(100, round(jitter(p["spo2"], 0.8))), None),
-            "sleep_hours": (round(max(3, jitter(p["sleep"] - (1.6 * t if decline else 0), 0.5)) * 4) / 4, None),
+            "sleep_hours": (round(max(3, jitter(p["sleep"] - (1.4 * t if decline else 0), 0.5)) * 4) / 4, None),
             "mood": (max(1, min(5, round(jitter(p["mood"] - (1.6 * t if decline else 0), 0.5)))), None),
             "radiation_dose": (round(max(0.05, jitter(p["dose"], p["dose"] * 0.12)), 2), None),
         }

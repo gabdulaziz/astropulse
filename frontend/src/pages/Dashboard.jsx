@@ -79,9 +79,9 @@ export default function Dashboard() {
           </div>
           <div className="row mt" style={{ justifyContent: 'space-between' }}>
             <span className="muted">This mission: <strong style={{ color: 'var(--text)' }}>{a.radiation.mission_msv} mSv</strong></span>
-            <span className="muted">{a.radiation.career_pct}% of career limit</span>
+            <span className="muted">{a.radiation.career_pct}% of NASA limit</span>
           </div>
-          <p className="faint" style={{ marginBottom: 0 }}>NASA's career limit is 600 mSv for every astronaut.</p>
+          <p className="faint" style={{ marginBottom: 0 }}>Measured against NASA's 600 mSv career limit. Other space agencies set their own limits.</p>
         </Card>
       </div>
 

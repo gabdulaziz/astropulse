@@ -579,3 +579,243 @@ BADGES = [
     {"key": "data_scientist", "name": "Data Scientist", "icon": "chart", "description": "Log 100 measurements."},
     {"key": "commander", "name": "Commander", "icon": "star", "description": "Reach level 5."},
 ]
+
+
+# =============================================================================
+# Facts checked against the official challenge resources (added Nov 2026)
+# The NASA Space Apps challenge page lists: NASA "5 Hazards of Human Spaceflight",
+# NASA "Risks of Human Spaceflight", NASA "Ongoing HRP Research in Space", and two
+# Canadian Space Agency (CSA) pages. Every source the app relies on is listed below,
+# and each indicator / hazard / body system / risk points to the ones it uses.
+# =============================================================================
+
+SOURCES = [
+    # ---- official challenge resources
+    {"id": "nasa_hazards", "challenge": True, "publisher": "NASA Human Research Program",
+     "title": "5 Hazards of Human Spaceflight", "url": "https://www.nasa.gov/hrp/hazards",
+     "used_for": "The five hazards (RIDGE), Mars distance (~140 million miles), Mars gravity (3/8 of Earth's), closed-environment factors"},
+    {"id": "nasa_risks", "challenge": True, "publisher": "NASA Human Research Program",
+     "title": "Risks of Human Spaceflight", "url": "https://www.nasa.gov/hrp/risks",
+     "used_for": "The 17 named spaceflight health risks shown in the NASA Risks tab and on the Body Map"},
+    {"id": "nasa_hrp", "challenge": True, "publisher": "NASA Human Research Program",
+     "title": "Human Research Program and ongoing research in space", "url": "https://www.nasa.gov/hrp",
+     "used_for": "How NASA studies astronaut health on the ISS and keeps medical monitoring data"},
+    {"id": "csa_radiation_2026", "challenge": True, "publisher": "Canadian Space Agency",
+     "title": "Monitoring radiation for astronaut health",
+     "url": "https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp",
+     "used_for": "Neutrons are ~30% of ISS radiation; CANS and bubble detector instruments"},
+    # ---- supporting sources
+    {"id": "csa_radiation_body", "challenge": False, "publisher": "Canadian Space Agency",
+     "title": "How does radiation affect the human body in space?",
+     "url": "https://www.asc-csa.gc.ca/eng/astronauts/space-medicine/radiation.asp",
+     "used_for": "Long-term effects (cataracts, cancer), acute effects only in large solar events, 24/7 monitoring"},
+    {"id": "csa_release_2026", "challenge": False, "publisher": "Government of Canada",
+     "title": "Canadian space radiation technology to support health and safety",
+     "url": "https://www.canada.ca/en/space-agency/news/2026/02/canadian-space-radiation-technology-to-support-health-and-safety.html",
+     "used_for": "Long-term radiation effects: cataracts, bone marrow damage, increased cancer risk"},
+    {"id": "patel_2020", "challenge": False, "publisher": "npj Microgravity (NASA HRP authors)",
+     "title": "Red risks for a journey to the red planet (Patel et al., 2020)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7645687",
+     "used_for": "How the five hazards link to 30+ health risks; SANS, radiation, behavioral health"},
+    {"id": "nasa_std_radiation", "challenge": False, "publisher": "NASA Office of the Chief Health & Medical Officer",
+     "title": "NASA-STD-3001 Technical Brief: Radiation Protection",
+     "url": "https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf",
+     "used_for": "NASA career radiation limit of 600 mSv"},
+    {"id": "barger_2014", "challenge": False, "publisher": "Lancet Neurology (summary: ScienceDaily)",
+     "title": "Sleep deficiency in astronauts (Barger et al., 2014)",
+     "url": "https://sciencedaily.com/releases/2014/08/140807215803.htm",
+     "used_for": "ISS crews averaged about 6 hours of sleep"},
+    {"id": "stahn_2017", "challenge": False, "publisher": "Scientific Reports",
+     "title": "Increased core body temperature in astronauts (Stahn et al., 2017)",
+     "url": "https://air.unimi.it/bitstream/2434/533558/2/ScientificReports_IncreasedCoreBodyTemperature_2017.pdf",
+     "used_for": "Resting core temperature rises about 1 °C on long missions"},
+    {"id": "trudel_2022", "challenge": False, "publisher": "Nature Medicine (summary: The Ottawa Hospital)",
+     "title": "Space anemia (Trudel et al., 2022)", "url": "https://ohri.ca/newsroom/story/view/1428?l=en",
+     "used_for": "54% more red blood cells destroyed in space"},
+    {"id": "zhang_2020", "challenge": False, "publisher": "Science Advances (summary: Sci.News)",
+     "title": "First radiation measurements on the lunar surface (Chang'e 4)",
+     "url": "https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html",
+     "used_for": "About 1.4 mSv per day on the Moon's surface"},
+    {"id": "hassler_rad", "challenge": False, "publisher": "Southwest Research Institute (Curiosity RAD)",
+     "title": "Radiation measured on the way to and on Mars", "url": "https://swri.org/node/9079",
+     "used_for": "About 1.8 mSv/day in transit to Mars and 0.7 mSv/day on the surface"},
+    {"id": "space_com_hrp", "challenge": False, "publisher": "Space.com, quoting NASA HRP",
+     "title": "From radiation to isolation: 5 big risks for Mars astronauts",
+     "url": "https://www.space.com/42918-big-space-risks-mars-astronauts-videos.html",
+     "used_for": "Communication with Mars has up to about a 20-minute delay each way"},
+    {"id": "clinical", "challenge": False, "publisher": "General clinical practice",
+     "title": "Standard clinical reference ranges (heart rate, blood pressure, glucose, temperature, SpO2, sleep)",
+     "url": None,
+     "used_for": "The green / amber / red thresholds. These are prototype values, not NASA flight rules"},
+]
+SOURCES_BY_ID = {s["id"]: s for s in SOURCES}
+
+# ---- which sources back each indicator
+for _key, _src in {
+    "heart_rate": ["nasa_risks", "clinical"],
+    "blood_pressure": ["nasa_risks", "clinical"],
+    "blood_glucose": ["nasa_risks", "clinical"],
+    "body_temperature": ["stahn_2017", "nasa_risks", "clinical"],
+    "spo2": ["nasa_risks", "clinical"],
+    "sleep_hours": ["barger_2014", "nasa_risks", "clinical"],
+    "mood": ["nasa_risks", "nasa_hazards"],
+    "body_mass": ["nasa_risks"],
+    "radiation_dose": ["csa_radiation_2026", "csa_radiation_body", "csa_release_2026", "nasa_std_radiation", "zhang_2020", "hassler_rad"],
+}.items():
+    INDICATORS[_key]["sources"] = _src
+
+# ---- radiation: facts from the CSA resources
+_rad = INDICATORS["radiation_dose"]
+_rad["why"] = ("Space radiation can break DNA and damage cells. Long-term it raises the risk of cancer and cataracts "
+               "and can damage bone marrow. NASA's career limit is 600 mSv; other space agencies set their own limits.")
+_rad["how_to"] = [
+    "Read your personal dosimeter once a day (passive badges, or active detectors such as the Canadian "
+    "bubble detectors and the new autonomous CANS neutron spectrometer).",
+    "Enter the dose for the last 24 hours in millisieverts (mSv).",
+]
+_rad["in_space"] = ("On the ISS, neutrons make up about 30% of the total radiation and are especially harmful. Typical daily "
+                    "doses: ~0.7 mSv on the ISS, ~1.4 mSv on the Moon, ~1.8 mSv in transit to Mars, ~0.7 mSv on Mars. "
+                    "Sudden (acute) sickness is only expected in a large solar particle event.")
+
+
+def _system(key):
+    return next(s for s in BODY_SYSTEMS if s["key"] == key)
+
+
+def _add(lst, *items):
+    for i in items:
+        if i not in lst:
+            lst.append(i)
+
+
+# ---- body map: fill the NASA risks that were missing
+_add(_system("eyes")["space_effects"], "Space radiation raises the long-term risk of cataracts")
+_add(_system("lungs")["space_effects"],
+     "Decompression sickness: moving to a lower-pressure spacesuit can form nitrogen bubbles in the body",
+     "Mild hypoxia (low oxygen) can result from the procedures that prevent decompression sickness")
+_add(_system("lungs")["countermeasures"], "Follow the spacewalk pre-breathe protocol exactly")
+_add(_system("immune")["space_effects"], "Radiation can damage bone marrow, where blood cells are made")
+_add(_system("gut")["space_effects"], "Skin and gut microbes change in space, which may make crew more likely to get sick")
+_add(_system("brain")["space_effects"], "Poor teamwork and miscommunication rise under isolation and stress")
+_add(_system("brain")["countermeasures"], "Regular crew meetings and team debriefs")
+_add(_system("muscles")["space_effects"], "Spacewalks risk fatigue and injury inside the spacesuit")
+_add(_system("bones")["space_effects"], "Strong forces during landing can injure weakened bones and the spine")
+_add(_system("skin")["space_effects"], "Changes in skin microbes can lead to rashes and infections")
+
+for _key, _src in {
+    "brain": ["nasa_risks", "nasa_hazards"], "eyes": ["nasa_risks", "patel_2020", "csa_release_2026"],
+    "ears": ["nasa_risks"], "lungs": ["nasa_risks"], "heart": ["nasa_risks", "patel_2020"],
+    "immune": ["nasa_risks", "trudel_2022", "csa_release_2026"], "gut": ["nasa_risks"], "kidneys": ["nasa_risks"],
+    "muscles": ["nasa_risks"], "bones": ["nasa_risks"], "skin": ["nasa_risks"],
+}.items():
+    _system(_key)["sources"] = _src
+
+# ---- hazards: align with NASA's own wording and numbers
+
+
+def _hazard(key):
+    return next(h for h in HAZARDS if h["key"] == key)
+
+
+_add(_hazard("radiation")["effects"], "Cataracts and bone marrow damage over the long term")
+_add(_hazard("radiation")["countermeasures"], "Continuous neutron monitoring (CSA's CANS instrument)")
+_add(_hazard("isolation")["effects"], "Poor teamwork and miscommunication")
+_add(_hazard("isolation")["countermeasures"], "Crews carefully chosen, trained and supported to work as a team")
+_hazard("distance")["summary"] = ("Mars is on average about 140 million miles from Earth: instead of a three-day trip to the Moon, "
+                                  "a Mars crew would be gone for roughly three years.")
+_add(_hazard("distance")["countermeasures"], "Planning and self-sufficiency")
+_hazard("gravity")["summary"] = ("On Mars, astronauts would live in three-eighths of Earth's gravity for up to two years. "
+                                 "Muscles, bones, inner ear and organs all have to adjust, and again on return to Earth.")
+_add(_hazard("gravity")["effects"], "Injury from the forces of landing")
+_hazard("environment")["summary"] = ("The spacecraft is a sealed home and a machine: temperature, pressure, lighting, noise and "
+                                     "microbes all have to be managed.")
+_add(_hazard("environment")["effects"], "Changes in skin and gut microbes")
+for _key, _src in {
+    "radiation": ["nasa_hazards", "csa_radiation_2026", "csa_radiation_body", "csa_release_2026"],
+    "isolation": ["nasa_hazards", "nasa_risks"], "distance": ["nasa_hazards", "space_com_hrp"],
+    "gravity": ["nasa_hazards", "nasa_risks"], "environment": ["nasa_hazards", "nasa_risks"],
+}.items():
+    _hazard(_key)["sources"] = _src
+
+for _key, _src in {
+    "station": ["nasa_hazards"], "spacecraft": ["hassler_rad", "nasa_hazards"], "rover": ["zhang_2020"],
+    "lunar_base": ["zhang_2020", "nasa_hazards"], "mars_base": ["hassler_rad", "nasa_hazards", "space_com_hrp"],
+}.items():
+    ENVIRONMENTS[_key]["sources"] = _src
+
+# ---- NASA's named risks and how AstroPulse covers each one
+# coverage: "tracked" (measured in the app) · "partly" (some signals, not the full picture)
+#           "guidance" (explained, cannot be self-measured) · "outside" (not a health measurement)
+RISKS = [
+    # Human physiology
+    {"key": "immune", "category": "Human physiology", "name": "Altered immune system responses",
+     "summary": "Stress in space can wake up dormant viruses, causing rashes and other symptoms.",
+     "coverage": "tracked", "how": "Daily body temperature, skin photos in Imaging, Body Map > Blood & Immune",
+     "indicators": ["body_temperature"], "hazards": ["environment", "radiation"]},
+    {"key": "sensorimotor", "category": "Human physiology", "name": "Altered sensorimotor and vestibular function",
+     "summary": "Gravity changes can cause motion sickness, dizziness and poor coordination.",
+     "coverage": "partly", "how": "Symptoms in check-in notes, Body Map > Inner Ear & Balance",
+     "indicators": [], "hazards": ["gravity"]},
+    {"key": "cardiovascular", "category": "Human physiology", "name": "Cardiovascular adaptations",
+     "summary": "Weightlessness changes blood flow and how the heart and vessels work.",
+     "coverage": "tracked", "how": "Resting heart rate and blood pressure, cardio quest",
+     "indicators": ["heart_rate", "blood_pressure"], "hazards": ["gravity", "radiation"]},
+    {"key": "decompression", "category": "Human physiology", "name": "Decompression sickness",
+     "summary": "Moving to a lower-pressure spacesuit can form nitrogen bubbles in the body.",
+     "coverage": "guidance", "how": "Explained on Body Map > Lungs; prevented by the pre-breathe protocol, not by self-measurement",
+     "indicators": [], "hazards": ["environment"]},
+    {"key": "microbes", "category": "Human physiology", "name": "Host-microorganism interactions",
+     "summary": "Skin and gut microbes change in space, which may make crew more likely to get sick.",
+     "coverage": "partly", "how": "Body temperature, skin photos, Body Map > Digestion and Skin",
+     "indicators": ["body_temperature"], "hazards": ["environment"]},
+    {"key": "hypoxia", "category": "Human physiology", "name": "Hypoxia",
+     "summary": "Measures that prevent decompression sickness can cause mild low oxygen in the body.",
+     "coverage": "tracked", "how": "Blood oxygen (SpO2)", "indicators": ["spo2"], "hazards": ["environment"]},
+    {"key": "nutrition", "category": "Human physiology", "name": "Inadequate food and nutrition",
+     "summary": "A poor or insufficient diet hurts health and performance on long missions.",
+     "coverage": "tracked", "how": "Weekly body mass, blood glucose, nutrition quest",
+     "indicators": ["body_mass", "blood_glucose"], "hazards": ["distance", "environment"]},
+    {"key": "eva", "category": "Human physiology", "name": "Injury and compromised performance during spacewalks",
+     "summary": "Working in a spacesuit risks fatigue, injury and abnormal oxygen or CO2 levels.",
+     "coverage": "guidance", "how": "Explained on Body Map > Muscles and Lungs; SpO2 and sleep show readiness",
+     "indicators": ["spo2", "sleep_hours"], "hazards": ["environment"]},
+    {"key": "fitness", "category": "Human physiology", "name": "Reduced cardiorespiratory and musculoskeletal fitness",
+     "summary": "Losing bone, muscle and heart fitness lowers crew performance.",
+     "coverage": "tracked", "how": "Resistance and cardio quests, body mass, resting heart rate",
+     "indicators": ["body_mass", "heart_rate"], "hazards": ["gravity"]},
+    {"key": "sans", "category": "Human physiology", "name": "Spaceflight Associated Neuro-ocular Syndrome (SANS)",
+     "summary": "The structure of the eyes and brain can change during spaceflight.",
+     "coverage": "partly", "how": "Vision self-check quest, eye photos in Imaging, blood pressure; eye scans are needed for a diagnosis",
+     "indicators": ["blood_pressure"], "hazards": ["gravity"]},
+    {"key": "bone", "category": "Human physiology", "name": "Spaceflight-induced bone changes",
+     "summary": "Bones weaken without gravity, which raises the risk of fractures.",
+     "coverage": "partly", "how": "Resistance quest and body mass; bone density itself needs a scan",
+     "indicators": ["body_mass"], "hazards": ["gravity"]},
+    # Behavioral performance and human factors
+    {"key": "behavioral", "category": "Behavioral performance", "name": "Behavioral changes and psychiatric disorders",
+     "summary": "Isolation, radiation, distance and stress can harm mental health.",
+     "coverage": "tracked", "how": "Daily mood with journal notes, mind quests", "indicators": ["mood"],
+     "hazards": ["isolation", "distance", "radiation"]},
+    {"key": "teamwork", "category": "Behavioral performance", "name": "Inadequate teamwork",
+     "summary": "A crew that doesn't work well together can put the mission and safety at risk.",
+     "coverage": "partly", "how": "'Connect with someone' quest, mood trends", "indicators": ["mood"], "hazards": ["isolation"]},
+    {"key": "sleep", "category": "Behavioral performance", "name": "Inadequate sleep and irregular schedules",
+     "summary": "Sleep loss, heavy workloads and disrupted body clocks affect health and safety.",
+     "coverage": "tracked", "how": "Daily sleep hours, lights-out quest", "indicators": ["sleep_hours"],
+     "hazards": ["isolation", "environment"]},
+    {"key": "systems", "category": "Behavioral performance", "name": "Inadequate systems operations support",
+     "summary": "Crews may face software or vehicle problems without enough information or training.",
+     "coverage": "outside", "how": "About spacecraft systems, not health. AstroPulse itself is support software for crew health",
+     "indicators": [], "hazards": ["distance"]},
+    {"key": "landing", "category": "Behavioral performance", "name": "Injury from dynamic loads",
+     "summary": "The strong forces of landing can injure the crew.",
+     "coverage": "guidance", "how": "Explained on Body Map > Bones; bone and muscle quests help prepare",
+     "indicators": [], "hazards": ["gravity"]},
+    # Space radiation
+    {"key": "radiation_cancer", "category": "Space radiation", "name": "Radiation-induced cancers",
+     "summary": "Crews exposed to space radiation may have a higher chance of developing cancer.",
+     "coverage": "tracked", "how": "Daily dosimeter reading, mission and career radiation budget",
+     "indicators": ["radiation_dose"], "hazards": ["radiation"]},
+]
+for _r in RISKS:
+    _r["sources"] = ["nasa_risks"]

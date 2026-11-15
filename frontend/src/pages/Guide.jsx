@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, Globe2, ShieldCheck, Zap } from 'lucide-react'
+import { BookMarked, ChevronDown, ExternalLink, Globe2, ShieldCheck, Zap } from 'lucide-react'
 import { TopBar } from '../components/Layout'
 import { Card, Loader, Page, Tabs } from '../components/ui'
 import { useCrew } from '../lib/CrewContext'
 import { api } from '../lib/api'
 import { Icon } from '../lib/health'
+import { SourceLinks } from '../components/Sources'
 
 export default function Guide() {
   const [tab, setTab] = useState('indicators')
@@ -13,14 +14,17 @@ export default function Guide() {
     <Page>
       <TopBar title="Health Guide" subtitle="What to measure, why, and how space changes your body">
         <Tabs id="guide" value={tab} onChange={setTab} tabs={[
-          { value: 'indicators', label: 'Indicators' }, { value: 'hazards', label: 'Five hazards' }, { value: 'env', label: 'Environments' },
+          { value: 'indicators', label: 'Indicators' }, { value: 'hazards', label: 'Five hazards' }, { value: 'risks', label: 'NASA risks' },
+          { value: 'env', label: 'Environments' }, { value: 'sources', label: 'Sources' },
         ]} />
       </TopBar>
       <AnimatePresence mode="wait">
         <motion.div key={tab} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.3 }}>
           {tab === 'indicators' && <Indicators />}
           {tab === 'hazards' && <Hazards />}
+          {tab === 'risks' && <Risks />}
           {tab === 'env' && <Environments />}
+          {tab === 'sources' && <Sources />}
         </motion.div>
       </AnimatePresence>
     </Page>
@@ -64,6 +68,7 @@ function Indicators() {
                         <ul>{s.actions[lvl].map((a, i) => <li key={i}>{a}</li>)}</ul>
                       </div>
                     ))}
+                    <SourceLinks ids={s.sources} />
                   </div>
                 </div>
               </motion.div>
@@ -109,6 +114,7 @@ function Hazards() {
             <div className="row wrap mt" style={{ gap: 6 }}>
               {h.indicators.map((k) => { const s = indicators.find((x) => x.key === k); return s && <span key={k} className="chip"><Icon name={s.icon} size={13} /> {s.short}</span> })}
             </div>
+            <SourceLinks ids={h.sources} />
           </Card>
         ))}
       </div>
@@ -134,8 +140,110 @@ function Environments() {
             <dt>Evacuation</dt><dd>{e.evacuation}</dd>
           </dl>
           <p className="muted" style={{ marginBottom: 0 }}>{e.notes}</p>
+          <SourceLinks ids={e.sources} />
         </Card>
       ))}
     </div>
+  )
+}
+
+const COVERAGE = {
+  tracked: { label: 'Tracked', help: 'AstroPulse measures it' },
+  partly: { label: 'Partly tracked', help: 'Some signals; the full picture needs medical tests' },
+  guidance: { label: 'Guidance only', help: 'Explained in the app; it cannot be self-measured' },
+  outside: { label: 'Outside scope', help: 'Not a health measurement' },
+}
+
+function Risks() {
+  const [risks, setRisks] = useState(null)
+  const { indicators } = useCrew()
+  useEffect(() => { api.risks().then(setRisks) }, [])
+  if (!risks) return <Loader />
+  const counts = risks.reduce((acc, r) => ({ ...acc, [r.coverage]: (acc[r.coverage] || 0) + 1 }), {})
+  const cats = [...new Set(risks.map((r) => r.category))]
+  return (
+    <>
+      <Card>
+        <h2 style={{ fontSize: 22 }}>NASA's <span className="gradient-text">{risks.length} spaceflight health risks</span>, and how AstroPulse covers them</h2>
+        <p className="muted">
+          NASA's Human Research Program names specific health risks that come from the five hazards. This is the full list from NASA's
+          "Risks of Human Spaceflight" page, with what AstroPulse does about each one.
+        </p>
+        <div className="row wrap" style={{ gap: 10 }}>
+          {Object.entries(COVERAGE).map(([k, v]) => (
+            <span key={k} className={`cov ${k}`} title={v.help}>{counts[k] || 0} · {v.label}</span>
+          ))}
+        </div>
+        <SourceLinks ids={['nasa_risks']} />
+      </Card>
+      {cats.map((cat) => (
+        <Card key={cat} className="mt" pad={false}>
+          <div className="panel-title" style={{ padding: '18px 18px 0' }}>{cat}</div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table">
+              <thead><tr><th>Risk</th><th>What it means</th><th>Coverage</th><th>How AstroPulse handles it</th></tr></thead>
+              <tbody>
+                {risks.filter((r) => r.category === cat).map((r) => (
+                  <tr key={r.key}>
+                    <td style={{ fontWeight: 600, minWidth: 180 }}>{r.name}</td>
+                    <td className="muted" style={{ minWidth: 220 }}>{r.summary}</td>
+                    <td><span className={`cov ${r.coverage}`} title={COVERAGE[r.coverage].help}>{COVERAGE[r.coverage].label}</span></td>
+                    <td className="muted" style={{ minWidth: 240 }}>
+                      {r.how}
+                      {r.indicators.length > 0 && (
+                        <div className="row wrap" style={{ gap: 6, marginTop: 6 }}>
+                          {r.indicators.map((k) => { const s = indicators.find((x) => x.key === k); return s && <span key={k} className="chip" style={{ padding: '2px 8px', fontSize: 11 }}><Icon name={s.icon} size={11} /> {s.short}</span> })}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ))}
+    </>
+  )
+}
+
+function Sources() {
+  const [sources, setSources] = useState(null)
+  useEffect(() => { api.sources().then(setSources) }, [])
+  if (!sources) return <Loader />
+  const groups = [
+    ['Official challenge resources', sources.filter((s) => s.challenge)],
+    ['Supporting scientific sources', sources.filter((s) => !s.challenge)],
+  ]
+  return (
+    <>
+      <Card>
+        <h2 style={{ fontSize: 22 }} className="row"><BookMarked size={22} color="#22d3ee" /> Where AstroPulse's health information comes from</h2>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          The challenge's official NASA and CSA resources come first. The supporting studies add specific numbers, such as sleep hours
+          and radiation dose. The green, amber and red ranges are standard clinical reference values chosen for this prototype. They are
+          not NASA flight rules, and AstroPulse is not a medical device.
+        </p>
+      </Card>
+      {groups.map(([title, list]) => (
+        <Card key={title} className="mt">
+          <div className="panel-title">{title} <span className="muted">{list.length}</span></div>
+          <div className="grid" style={{ gap: 10 }}>
+            {list.map((s) => (
+              <div key={s.id} className="due-item" style={{ alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>
+                    {s.url ? <a href={s.url} target="_blank" rel="noreferrer" style={{ color: 'var(--text)' }}>{s.title} <ExternalLink size={12} /></a> : s.title}
+                  </div>
+                  <div className="faint">{s.publisher}</div>
+                  <div className="muted" style={{ marginTop: 4 }}>Used for: {s.used_for}</div>
+                </div>
+                {s.challenge && <span className="source-chip official">Challenge resource</span>}
+              </div>
+            ))}
+          </div>
+        </Card>
+      ))}
+    </>
   )
 }

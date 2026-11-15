@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { ShieldCheck, Zap } from 'lucide-react'
 import { TopBar } from '../components/Layout'
 import { Card, Loader, Page, StatusPill } from '../components/ui'
+import { SourceLinks } from '../components/Sources'
 import { useCrew } from '../lib/CrewContext'
 import { api } from '../lib/api'
 import { Icon, STATUS_COLOR, formatValue } from '../lib/health'
@@ -127,6 +128,7 @@ export default function BodyMap() {
               <ul className="list">
                 {sys.countermeasures.map((c, i) => <li key={i}><ShieldCheck size={15} color="#34d399" />{c}</li>)}
               </ul>
+              <SourceLinks ids={sys.sources} />
             </div>
           </motion.div>
         </AnimatePresence>

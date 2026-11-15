@@ -5,6 +5,7 @@ import App from './App'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { CrewProvider } from './lib/CrewContext'
 import { ToastProvider } from './components/ui'
+import { SourcesProvider } from './components/Sources'
 import './styles.css'
 
 // A fresh crew state for every login, so one person's data never leaks into the next session.
@@ -18,9 +19,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
-          <PerUser>
-            <App />
-          </PerUser>
+          <SourcesProvider>
+            <PerUser>
+              <App />
+            </PerUser>
+          </SourcesProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>

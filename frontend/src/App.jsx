@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Starfield from './components/Starfield'
@@ -21,6 +22,18 @@ export default function App() {
   const { me, checking, isAdmin } = useAuth()
   const { loading, error, crew } = useCrew()
 
+  // Safety net: if 2.5 s after a page change no page is visible (a stuck animation),
+  // redraw the pages instead of leaving the screen blank until a manual refresh.
+  const [redraw, setRedraw] = useState(0)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const pages = [...document.querySelectorAll('main .page')]
+      const ok = pages.some((p) => Number(getComputedStyle(p).opacity) > 0.5)
+      if (!ok && document.querySelector('main') && !document.querySelector('main .loader')) setRedraw((n) => n + 1)
+    }, 2500)
+    return () => clearTimeout(t)
+  }, [location.pathname])
+
   // Not signed in: only the login screen
   if (checking || !me) {
     return (
@@ -41,7 +54,7 @@ export default function App() {
   else if (error && !crew.length && !noCrew) content = <Offline error={error} />
   else
     content = (
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" key={redraw}>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={noCrew ? <Crew firstRun /> : <Dashboard />} />
           <Route path="/overview" element={isAdmin ? <Overview /> : <Navigate to="/" replace />} />
